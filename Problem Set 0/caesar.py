@@ -16,5 +16,25 @@ def caesar_dechiper(ciphered: str, dictionary: List[str]) -> DechiperResult:
         This function takes the ciphered text (string)  and the dictionary (a list of strings where each string is a word).
         It should return a DechiperResult (see above for more info) with the deciphered text, the cipher shift, and the number of deciphered words that are not in the dictionary. 
     '''
-    #TODO: ADD YOUR CODE HERE
-    utils.NotImplemented()
+    dictionary = set(dictionary)
+    def shift_char(c, shift):
+        # Shift only lowercase letters; spaces remain unchanged
+        if c.isalpha():
+            return chr(((ord(c) - ord('a') - shift) % 26) + ord('a'))
+        return c
+
+    best_result = None
+
+    # Try all possible shifts (from 0 to 25)
+    for shift in range(26):
+        # Decipher the text using the current shift
+        deciphered = ''.join(shift_char(char, shift) for char in ciphered)
+        
+        # Count the number of words not in the dictionary
+        count = sum(1 for word in deciphered.split() if word not in dictionary)
+        
+        # If it's the first shift or this one is better (fewer unknown words), store the result
+        if best_result is None or count < best_result[2]:
+            best_result = (deciphered, shift, count)
+
+    return best_result
