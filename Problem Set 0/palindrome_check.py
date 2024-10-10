@@ -6,5 +6,10 @@ def palindrome_check(string: str) -> bool:
     A palindrome is a string that does not change if read from left to right or from right to left
     Assume that empty strings are palindromes
     '''
+
     #TODO: ADD YOUR CODE HERE
-    utils.NotImplemented()
+    for i in range(0,len(string)):
+        if string[i] != string[len(string)-i-1]:
+            return False
+
+    return True

@@ -11,5 +11,15 @@ def calculate_gpa(student: Student, courses: List[Course]) -> float:
     But you can convert the grades to points using a static method in the course class
     To know how to use the Student and Course classes, see the file "college.py"  
     '''
-    #TODO: ADD YOUR CODE HERE
-    utils.NotImplemented()
+    num=0
+    denum=0
+    for course in courses:
+        if course.grades.get(student.id) is None:
+            continue
+        num+=course.hours*course.convert_grade_to_points(course.grades[student.id])
+        denum+=course.hours
+    if denum==0:
+        return 0
+    return num/denum
+
+    
