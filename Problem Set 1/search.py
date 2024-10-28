@@ -46,8 +46,7 @@ def BreadthFirstSearch(problem: Problem[S, A], initial_state: S) -> Solution:
 
 def DepthFirstSearch(problem: Problem[S, A], initial_state: S) -> Solution:
     node = Node(initial_state, [])
-    if problem.is_goal(node.state):
-        return node.cumlative_successful_path
+
 
     # Use LifoQueue to implement a stack
     frontier = queue.LifoQueue()
@@ -59,15 +58,16 @@ def DepthFirstSearch(problem: Problem[S, A], initial_state: S) -> Solution:
     
     while not frontier.empty():
         node = frontier.get()
+        # nodeFromSet=frontier_handle_duplicates.pop()
+    
         explored.add(node.state)
+        if problem.is_goal(node.state):
+            return node.cumlative_successful_path
 
         for action in problem.get_actions(node.state):
             child_state = problem.get_successor(node.state, action)
 
-            if child_state not in explored and child_state not in frontier_handle_duplicates:
-                if problem.is_goal(child_state):
-                    return node.cumlative_successful_path + [action]
-                
+            if child_state not in explored and child_state not in frontier_handle_duplicates: 
                 # Push the child node onto the stack (LifoQueue)
                 frontier.put(Node(child_state, node.cumlative_successful_path + [action]))
                 frontier_handle_duplicates.add(child_state)
