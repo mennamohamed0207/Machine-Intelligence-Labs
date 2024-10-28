@@ -20,17 +20,36 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
     # This function should return the initial state
     def get_initial_state(self) -> ParkingState:
         #TODO: ADD YOUR CODE HERE
-        utils.NotImplemented()
+        CurrentState:Tuple[Point]=()
+        for car in self.cars:
+            index,direction=car
+            CurrentState+=((index,direction),)
+        return CurrentState    
     
     # This function should return True if the given state is a goal. Otherwise, it should return False.
     def is_goal(self, state: ParkingState) -> bool:
         #TODO: ADD YOUR CODE HERE
-        utils.NotImplemented()
+        for rightPlace,car in self.slots.items():
+            if state[car]!=rightPlace:
+                return False
+        return True
     
     # This function returns a list of all the possible actions that can be applied to the given state
     def get_actions(self, state: ParkingState) -> List[ParkingAction]:
-        #TODO: ADD YOUR CODE HERE
-        utils.NotImplemented()
+        actions = []
+        for car_index, car_position in enumerate(state):
+            # Check if the car is already at its designated slot
+            if self.slots.get(car_position) != car_index:
+                # Check all possible directions
+                if car_position[0] > 0 and Point(car_position[0] - 1, car_position[1]) in self.passages:
+                    actions.append((car_index, Direction.LEFT))
+                if car_position[0] < self.width - 1 and Point(car_position[0] + 1, car_position[1]) in self.passages:
+                    actions.append((car_index, Direction.RIGHT))
+                if car_position[1] > 0 and Point(car_position[0], car_position[1] - 1) in self.passages:
+                    actions.append((car_index, Direction.UP))
+                if car_position[1] < self.height - 1 and Point(car_position[0], car_position[1] + 1) in self.passages:
+                    actions.append((car_index, Direction.DOWN))
+        return actions
     
     # This function returns a new state which is the result of applying the given action to the given state
     def get_successor(self, state: ParkingState, action: ParkingAction) -> ParkingState:
