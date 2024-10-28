@@ -38,9 +38,8 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
     def get_actions(self, state: ParkingState) -> List[ParkingAction]:
         actions = []
         for car_index, car_position in enumerate(state):
-            # Check if the car is already at its designated slot
+            # Check if the car is already at its right slot
             if self.slots.get(car_position) != car_index:
-                # Check all possible directions
                 if car_position[0] > 0 and Point(car_position[0] - 1, car_position[1]) in self.passages:
                     actions.append((car_index, Direction.LEFT))
                 if car_position[0] < self.width - 1 and Point(car_position[0] + 1, car_position[1]) in self.passages:
@@ -54,12 +53,43 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
     # This function returns a new state which is the result of applying the given action to the given state
     def get_successor(self, state: ParkingState, action: ParkingAction) -> ParkingState:
         #TODO: ADD YOUR CODE HERE
-        utils.NotImplemented()
+        car,direction=action
+        newPoint:Point=state[car]
+        if direction==Direction.RIGHT:
+            newPoint=Point(newPoint[0]+1,newPoint[1])
+        elif direction==Direction.LEFT:
+            newPoint=Point(newPoint[0]-1,newPoint[1])
+        elif direction==Direction.UP:
+            newPoint=Point(newPoint[0],newPoint[1]-1)
+        elif direction==Direction.DOWN:
+            newPoint=Point(newPoint[0],newPoint[1]+1)
+        newState:Tuple[Point]=()
+        for index in range(len(state)):
+            if index==car:
+                newState+=(newPoint,)
+            newState+=(state[index],)
+        return state
     
     # This function returns the cost of applying the given action to the given state
     def get_cost(self, state: ParkingState, action: ParkingAction) -> float:
         #TODO: ADD YOUR CODE HERE
-        utils.NotImplemented()
+        car,direction=action
+        carPosition=state[car]
+        finalPosition=None
+        if direction==Direction.RIGHT:
+            finalPosition=Point(carPosition[0]+1,carPosition[1])
+        elif direction==Direction.LEFT:
+            finalPosition=Point(carPosition[0]-1,carPosition[1])
+        elif direction==Direction.UP:
+            finalPosition=Point(carPosition[0],carPosition[1]-1)
+        elif direction==Direction.DOWN:
+            finalPosition=Point(carPosition[0],carPosition[1]+1)
+        if finalPosition in self.slots and self.slots[finalPosition]!=car:
+            return 101
+        else:
+            return 1
+            
+        
     
      # Read a parking problem from text containing a grid of tiles
     @staticmethod
