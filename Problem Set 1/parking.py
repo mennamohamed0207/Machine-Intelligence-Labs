@@ -20,17 +20,13 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
     # This function should return the initial state
     def get_initial_state(self) -> ParkingState:
         #TODO: ADD YOUR CODE HERE
-        CurrentState:Tuple[Point]=()
-        for car in self.cars:
-            index,direction=car
-            CurrentState+=((index,direction),)
-        return CurrentState    
+        return self.cars
     
     # This function should return True if the given state is a goal. Otherwise, it should return False.
     def is_goal(self, state: ParkingState) -> bool:
-        #TODO: ADD YOUR CODE HERE
-        for rightPlace,car in self.slots.items():
-            if state[car]!=rightPlace:
+        # check if all the cars are in their parking slots
+        for car_index, car_position in enumerate(state):
+            if car_position not in self.slots or self.slots[car_position] != car_index:
                 return False
         return True
     
@@ -38,37 +34,21 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
     def get_actions(self, state: ParkingState) -> List[ParkingAction]:
         actions = []
         for car_index, car_position in enumerate(state):
-            # Check if the car is already at its right slot
-            if self.slots.get(car_position) != car_index:
-                if car_position[0] > 0 and Point(car_position[0] - 1, car_position[1]) in self.passages:
-                    actions.append((car_index, Direction.LEFT))
-                if car_position[0] < self.width - 1 and Point(car_position[0] + 1, car_position[1]) in self.passages:
-                    actions.append((car_index, Direction.RIGHT))
-                if car_position[1] > 0 and Point(car_position[0], car_position[1] - 1) in self.passages:
-                    actions.append((car_index, Direction.UP))
-                if car_position[1] < self.height - 1 and Point(car_position[0], car_position[1] + 1) in self.passages:
-                    actions.append((car_index, Direction.DOWN))
+            for direction in Direction:
+                possiblePosition=car_position+direction.to_vector()
+                # check if after applied this action the car are in suitable position not a wall and no other car in this place 
+                if possiblePosition in self.passages and possiblePosition not in state:
+                    actions.append((car_index, direction))
         return actions
     
     # This function returns a new state which is the result of applying the given action to the given state
     def get_successor(self, state: ParkingState, action: ParkingAction) -> ParkingState:
         #TODO: ADD YOUR CODE HERE
-        car,direction=action
-        newPoint:Point=state[car]
-        if direction==Direction.RIGHT:
-            newPoint=Point(newPoint[0]+1,newPoint[1])
-        elif direction==Direction.LEFT:
-            newPoint=Point(newPoint[0]-1,newPoint[1])
-        elif direction==Direction.UP:
-            newPoint=Point(newPoint[0],newPoint[1]-1)
-        elif direction==Direction.DOWN:
-            newPoint=Point(newPoint[0],newPoint[1]+1)
-        newState:Tuple[Point]=()
-        for index in range(len(state)):
-            if index==car:
-                newState+=(newPoint,)
-            newState+=(state[index],)
-        return state
+        car_index, direction = action
+        newPoint = state[car_index] + direction.to_vector()
+        return tuple(
+            newPoint if i == car_index else state[i] for i in range(len(state))
+        )
     
     # This function returns the cost of applying the given action to the given state
     def get_cost(self, state: ParkingState, action: ParkingAction) -> float:
@@ -77,13 +57,13 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
         carPosition=state[car]
         finalPosition=None
         if direction==Direction.RIGHT:
-            finalPosition=Point(carPosition[0]+1,carPosition[1])
+            finalPosition=Point(carPosition.x+1,carPosition.y)
         elif direction==Direction.LEFT:
-            finalPosition=Point(carPosition[0]-1,carPosition[1])
+            finalPosition=Point(carPosition.x-1,carPosition.y)
         elif direction==Direction.UP:
-            finalPosition=Point(carPosition[0],carPosition[1]-1)
+            finalPosition=Point(carPosition.x,carPosition.y-1)
         elif direction==Direction.DOWN:
-            finalPosition=Point(carPosition[0],carPosition[1]+1)
+            finalPosition=Point(carPosition.x,carPosition.y+1)
         if finalPosition in self.slots and self.slots[finalPosition]!=car:
             return 101
         else:
