@@ -15,17 +15,17 @@ class Node:
     state: S
     cumlative_successful_path:list
     cost:float
-    def __init__(self,state,cumlative_successful_path,cost=0):
+    index:int
+    def __init__(self,state,cumlative_successful_path,cost=0,index=0):
         self.state=state
         self.cumlative_successful_path=cumlative_successful_path
         self.cost=cost
+        self.index=index
     def __lt__(self, other):
-        return self.cost < other.cost
-    def __gt__(self, other):
-        if self.cost > other.cost:
+        if self.cost < other.cost:
             return True
         if self.cost == other.cost:
-            return self.order > other.order
+            return self.index < other.index
         return False
     def __eq__(self, other):
         return self.state == other.state
@@ -118,7 +118,7 @@ def UniformCostSearch(problem: Problem[S, A], initial: S) -> Solution:
 
 def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction) -> Solution:
     #TODO: ADD YOUR CODE HERE
-    node=Node(initial,[],0)
+    node=Node(initial,[],0,index=0)
     frontier = queue.PriorityQueue()
     frontier_handle_duplicates=set()
     frontier.put(node)
@@ -130,21 +130,22 @@ def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction
         explored.add(node.state)
         if problem.is_goal(node.state):
             return node.cumlative_successful_path
+        
         for action in problem.get_actions(node.state):
             child = problem.get_successor(node.state, action)
             child_path = node.cumlative_successful_path + [action]
-            child_cost =( node.cost + problem.get_cost(node.state, action))+ heuristic(problem, child)
-            child_node = Node(child, child_path, child_cost)
+            child_cost =node.cost + problem.get_cost(node.state, action)+ heuristic(problem, child)
+            child_node = Node(child, child_path, child_cost,index=node.index+1)
+            
             if child not in explored and child not in frontier_handle_duplicates:
-    
                 frontier.put(child_node)
                 frontier_handle_duplicates.add(child)
-                
-            elif child_node in frontier.queue: #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
+                #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
+            elif child_node in frontier.queue: 
                 #get frontier index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
-                if child_cost>=frontier_top.cost:
+                if child_cost <= frontier_top.cost:
                     frontier.queue[frontierPosition]=child_node          
     
     return None  
@@ -157,6 +158,7 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
     frontier.put(node)
     #this set is added as we are implementing the graph version of the algorithm so we need to handle duplicates states that enters the frontier
     frontier_handle_duplicates.add(node.state)
+    
     explored = set()
     while not frontier.empty():
         node = frontier.get()
@@ -167,9 +169,9 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
             child = problem.get_successor(node.state, action)
             child_path = node.cumlative_successful_path + [action]
             child_cost = heuristic(problem, child)
-            child_node = Node(child, child_path, child_cost)
+            child_node = Node(child, child_path, child_cost,index=node.index+1)
             
-            if child not in explored and child not in frontier_handle_duplicates:
+            if child not in explored and child not in frontier.queue:
     
                 frontier.put(child_node)
                 frontier_handle_duplicates.add(child)
@@ -178,7 +180,7 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
                 #get frontier index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
-                if child_cost<frontier_top.cost:
+                if child_cost <= frontier_top.cost:
                     frontier.queue[frontierPosition]=child_node          
     
     return None  
