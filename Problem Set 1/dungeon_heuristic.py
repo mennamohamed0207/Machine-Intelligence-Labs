@@ -16,4 +16,4 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     # which is considered the number of is_goal calls during the search
     #NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-    return manhattan_distance(state.player, problem.layout.exit)
+    return 0

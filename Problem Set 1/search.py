@@ -155,12 +155,15 @@ def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction
             elif child_node in frontier.queue: 
                 #get frontier index
                 frontierPosition=frontier.queue.index(child_node)
-                frontier_top=frontier.queue[frontierPosition]
+                frontier_top=frontier.queue[0]
                 if child_AStar_cost < frontier_top.totalcost:
-                    frontier.queue[frontierPosition]=child_node 
+                    frontier.queue[frontierPosition]=frontier_top 
+                    frontier.queue[0]=child_node
                 elif child_AStar_cost == frontier_top.totalcost:
                     if child_node.index < frontier_top.index:
-                        frontier.queue[frontierPosition]=child_node
+                        frontier.queue[frontierPosition]=frontier_top
+                        frontier.queue[0]=child_node
+
     return None  
 
 def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction) -> Solution:
@@ -191,11 +194,13 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
             elif child_node in frontier.queue: #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
                 #get frontier index
                 frontierPosition=frontier.queue.index(child_node)
-                frontier_top=frontier.queue[frontierPosition]
+                frontier_top=frontier.queue[0]
                 if child_cost < frontier_top.cost:
                     frontier.queue[frontierPosition]=child_node  
+                    frontier.queue[0]=child_node
                 elif child_cost == frontier_top.cost:
                     if child_node.index < frontier_top.index:
-                        frontier.queue[frontierPosition]=child_node        
+                        frontier.queue[frontierPosition]=child_node
+                        frontier.queue[0]=child_node      
     
     return None  
