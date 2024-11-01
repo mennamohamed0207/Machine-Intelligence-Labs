@@ -143,8 +143,8 @@ def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction
         for action in problem.get_actions(node.state):
             child = problem.get_successor(node.state, action)
             child_path = node.cumlative_successful_path + [action]
-            child_cost = problem.get_cost(node.state, action)+node.cost
-            child_AStar_cost=child_cost+heuristic(problem,child)
+            child_AStar_cost = problem.get_cost(node.state, action)+node.totalcost
+            child_cost=child_AStar_cost+heuristic(problem,child)
             child_node = Node(child, child_path, child_cost,totalcost=child_AStar_cost)
             child_node.index=index
             index+=1
@@ -156,10 +156,10 @@ def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction
                 #get frontier index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
-                if child_AStar_cost < frontier_top.totalcost:
+                if child_cost < frontier_top.cost:
                     frontier.queue[frontierPosition]=frontier_top 
                     frontier.queue[frontierPosition]=child_node
-                elif child_AStar_cost == frontier_top.totalcost:
+                elif child_cost == frontier_top.cost:
                     if child_node.index < frontier_top.index:
                         frontier.queue[frontierPosition]=frontier_top
                         frontier.queue[frontierPosition]=child_node
