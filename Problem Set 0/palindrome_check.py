@@ -8,7 +8,7 @@ def palindrome_check(string: str) -> bool:
     '''
 
     #TODO: ADD YOUR CODE HERE
-    for i in range(0,len(string)):
+    for i in range(0,len(string)//2):
         if string[i] != string[len(string)-i-1]:
             return False
 
