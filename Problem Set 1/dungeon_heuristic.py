@@ -16,40 +16,27 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     # which is considered the number of is_goal calls during the search
     #NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-    
-        # Approach:
-    # We want to find the nearest coin.
-    # If the coin is close to the exit, we want to go to the coin.
-    # If there are no coins, we want to go to the exit.
+
     if state in problem.cache():
         return problem.cache()[state]
 
     coins = state.remaining_coins
-    walkable = problem.layout.walkable
+    minDistance = 0
+    maxDistance = float('inf')
+    wal = problem.layout.walkable
     exit = problem.layout.exit
-    leastDistance = float('inf')
-    for x in  range(0,problem.layout.width):
-        for y in range(0,problem.layout.height):
-            step = Point(x,y)
-            if step == exit:
-                return 0
-            if step in walkable or step in coins:
-                if step in coins:
-                    currentDistance = manhattan_distance(state.player, step)*0.5
-                    distanceToGoal=manhattan_distance(step, exit)
-                    currentDistance+=distanceToGoal
-                else:
-                    currentDistance=manhattan_distance(state.player, step)
-                    distanceToGoal=manhattan_distance(step, exit)
-                    currentDistance+=distanceToGoal
-                
-            else:
-                currentDistance = manhattan_distance(state.player, step)*1.5
-                distanceToGoal=manhattan_distance(step, exit)
-                currentDistance+=distanceToGoal
-
-            if currentDistance < leastDistance:
-                leastDistance = currentDistance
+    if len(coins) == 0:
+        minDistance = manhattan_distance(state.player, exit)
+        maxDistance = manhattan_distance(state.player, exit)
+        problem.cache()[state] = minDistance+maxDistance
+        return minDistance
+    currentdist = 0
+    for step in coins:
+        currentdist= manhattan_distance(state.player, step)
+        currentdist += manhattan_distance(step, exit)
+        minDistance = max(minDistance, currentdist)
+        
     
-    problem.cache()[state] = leastDistance
-    return leastDistance
+    
+    problem.cache()[state] = minDistance
+    return minDistance
