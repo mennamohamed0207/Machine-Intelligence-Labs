@@ -21,22 +21,26 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
         return problem.cache()[state]
 
     coins = state.remaining_coins
-    minDistance = 0
-    maxDistance = float('inf')
+    maxDistance = 0
     wal = problem.layout.walkable
+    goaldist=0
     exit = problem.layout.exit
     if len(coins) == 0:
-        minDistance = manhattan_distance(state.player, exit)
         maxDistance = manhattan_distance(state.player, exit)
-        problem.cache()[state] = minDistance+maxDistance
-        return minDistance
+        problem.cache()[state] = maxDistance
+        return maxDistance
     currentdist = 0
+    # print(problem.layout.exit)
+    # print(sorted_points)
     for step in coins:
         currentdist= manhattan_distance(state.player, step)
         currentdist += manhattan_distance(step, exit)
-        minDistance = max(minDistance, currentdist)
-        
-    
-    
-    problem.cache()[state] = minDistance
-    return minDistance
+        goaldist= manhattan_distance(state.player, exit)
+        maxDistance = max(maxDistance, currentdist)
+        if goaldist > maxDistance:
+            maxDistance = goaldist
+            
+
+
+    problem.cache()[state] = maxDistance
+    return maxDistance

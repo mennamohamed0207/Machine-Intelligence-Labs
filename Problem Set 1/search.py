@@ -115,8 +115,9 @@ def UniformCostSearch(problem: Problem[S, A], initial: S) -> Solution:
                 frontier.put(child_node)
                 frontier_handle_duplicates.add(child)
                 
-            elif child_node in frontier.queue: #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
-                #get frontier index
+                #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
+            elif child_node in frontier.queue: 
+                #get child index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
                 if child_cost<=frontier_top.cost:
@@ -153,7 +154,7 @@ def AStarSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunction
                 frontier_handle_duplicates.add(child)
                 #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
             elif child_node in frontier.queue: 
-                #get frontier index
+                #get child index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
                 if child_cost < frontier_top.cost:
@@ -185,14 +186,14 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
             child_cost = heuristic(problem, child)
             
             child_node = Node(child, child_path, child_cost,index=node.index+1)
-            child_node.index=index
+            child_node.index=index   
             index+=1
             if child not in explored and child_node not in frontier.queue:
     
                 frontier.put(child_node)
                 
             elif child_node in frontier.queue: #replace the frontier with the child node if the child node has a lower cost than the one in the frontier
-                #get frontier index
+                #get child index
                 frontierPosition=frontier.queue.index(child_node)
                 frontier_top=frontier.queue[frontierPosition]
                 if child_cost < frontier_top.cost:
