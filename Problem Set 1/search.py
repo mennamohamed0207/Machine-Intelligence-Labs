@@ -205,3 +205,4 @@ def BestFirstSearch(problem: Problem[S, A], initial: S, heuristic: HeuristicFunc
                         frontier.queue[frontierPosition]=child_node      
     
     return None  
+

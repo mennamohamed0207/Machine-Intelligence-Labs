@@ -102,3 +102,4 @@ class ParkingProblem(Problem[ParkingState, ParkingAction]):
         with open(path, 'r') as f:
             return ParkingProblem.from_text(f.read())
     
+

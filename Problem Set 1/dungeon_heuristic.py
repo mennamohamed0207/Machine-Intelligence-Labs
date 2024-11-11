@@ -119,15 +119,40 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
         problem.cache()[state] = exitDistance
         return exitDistance
 
-    playerToCoins = bfs_cost_distance(state.player, coins, walkable)
-    coinsToExit = bfs_cost_distance(exit, coins, walkable)
+    distances = bfs_cost_distance(state.player, coins, walkable)
 
     maxDistance = 0
-    
-    for coin in coins:
-        playerToCoinCost = playerToCoins.get(coin)
-        coinToExitCost = coinsToExit.get(coin)
-        maxDistance = max(maxDistance, playerToCoinCost + coinToExitCost)
 
+    for coin in distances:
+        maxDistance = max(maxDistance, distances[coin])
+        
+    maxDistance = max(maxDistance, manhattan_distance(state.player, exit))        
+        
     problem.cache()[state] = maxDistance
     return maxDistance
+def combined_bfs_cost(start: Point, targets: set[Point], exit: Point, walkable: set[Point]) -> tuple[dict[Point, int], int]:
+    queue = deque([(start, 0)])
+    visited = {start}
+    distances = {}
+    exit_distance = float('inf')
+
+    while queue:
+        current, dist = queue.popleft()
+
+        # Track distance to each target (coins) and exit
+        if current in targets:
+            distances[current] = dist
+            if len(distances) == len(targets) and current == exit:
+                break
+        if current == exit:
+            exit_distance = dist
+
+        # Explore neighbors
+        for direction in Direction:
+            neighbor = current + direction.to_vector()
+            if neighbor in walkable and neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, dist + 1))
+
+    return distances, exit_distance
+
