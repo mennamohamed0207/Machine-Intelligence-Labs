@@ -76,7 +76,7 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
         if isinstance(constraint, BinaryConstraint):
             if variable_to_assign in constraint.variables:
                 binary_constraints.append(constraint)
-    values = list(domains[variable_to_assign])
+    values = domains[variable_to_assign]
     possible_values = []
     restrictions = 0
 
@@ -94,7 +94,7 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
         # print(value, restrictions)
         # print("/////")
 
-    possible_values.sort(key=lambda x: x[1])
+    possible_values.sort(key=lambda x: (x[1], x[0]))
     possible_values = [value for value, _ in possible_values]
     return possible_values
 
