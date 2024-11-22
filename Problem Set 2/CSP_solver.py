@@ -1,3 +1,4 @@
+import copy
 import queue
 from typing import Any, Dict, List, Optional
 from CSP import Assignment, BinaryConstraint, Problem, UnaryConstraint
@@ -83,6 +84,8 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
         restrictions = 0
         for constraint in binary_constraints:
             second_variable = constraint.get_other(variable_to_assign)
+            if domains.get(second_variable) is None:
+                continue
             new_domain = {val for val in domains[second_variable] if constraint.is_satisfied({variable_to_assign: value, second_variable: val}) }
             restrictions += len(domains[second_variable]) - len(new_domain)
             
@@ -108,28 +111,26 @@ def solve(problem: Problem) -> Optional[Assignment]:
     #TODO: Write this function
     if not one_consistency(problem):
         return None
-    for constraint in problem.constraints:
-        if isinstance(constraint, UnaryConstraint):
-            variable = constraint.variable
-            new_domain = {value for value in problem.domains[variable] if constraint.condition(value)}
-            problem.domains[variable] = new_domain
     return backtracking(problem, {}, problem.variables, problem.domains)
+
 def backtracking(problem: Problem, assignment: Assignment, variables: List[str], domains: Dict[str, set]) -> Optional[Assignment]:
+    
     if problem.is_complete(assignment):
         return assignment
+    
     variable = minimum_remaining_values(problem, domains)
     values=least_restraining_values(problem, variable, domains)
-    if values is None:
-        return None
-    for value in values:
-        if not forward_checking(problem, variable, value, domains):
-            continue
-        assignment[variable] = value
-        variables.remove(variable)
-        result = backtracking(problem, assignment, variables, domains)
-        if result is not None:
-            return result
-        assignment.pop(variable)
-    return None
-    
 
+    for value in values:
+            assignment[variable] = value
+            domainsCopy = domains.copy()
+            for domainValue in domainsCopy:
+                domainsCopy[domainValue] = domains[domainValue].copy()
+            domainsCopy.pop(variable)
+            if  forward_checking(problem, variable, value, domains):
+                result = backtracking(problem, assignment, variables, domains)
+                if result is not None:
+                    return result
+            assignment.pop(variable)
+            
+    return None
