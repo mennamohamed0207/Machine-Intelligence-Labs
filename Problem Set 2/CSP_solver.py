@@ -119,10 +119,13 @@ def backtracking(problem: Problem, assignment: Assignment, variables: List[str],
         return assignment
     variable = minimum_remaining_values(problem, domains)
     values=least_restraining_values(problem, variable, domains)
+    if values is None:
+        return None
     for value in values:
         if not forward_checking(problem, variable, value, domains):
             continue
         assignment[variable] = value
+        variables.remove(variable)
         result = backtracking(problem, assignment, variables, domains)
         if result is not None:
             return result
