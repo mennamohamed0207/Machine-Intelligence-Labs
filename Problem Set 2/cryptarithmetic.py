@@ -51,7 +51,24 @@ class CryptArithmeticProblem(Problem):
 
         problem.variables = []
         problem.domains = {}
+        for letter in LHS0+LHS1+RHS:
+            problem.variables.append(letter)
+            problem.domains[letter] = set(range(10))
+        # for i in range(max(len(LHS0),len(LHS1))+1):
+        #     problem.variables.append(f"C{i}")
         problem.constraints = []
+        for letter in LHS0+LHS1:
+            #make all the letters in LHS0 and LHS1 and RHS have the unique values
+            
+            problem.constraints.append(UnaryConstraint(LHS0[0], lambda x: x != 0))
+            problem.constraints.append(UnaryConstraint(LHS1[0], lambda x: x != 0))
+            problem.constraints.append(UnaryConstraint(RHS[0], lambda x: x != 0))
+            problem.constraints.append(BinaryConstraint((LHS0, LHS1), lambda x, y: x + y == int(RHS)))
+            
+            
+            
+
+        
         return problem
 
     # Read a cryptarithmetic puzzle from a file
