@@ -111,7 +111,8 @@ def solve(problem: Problem) -> Optional[Assignment]:
     #TODO: Write this function
     if not one_consistency(problem):
         return None
-    return backtracking(problem, {}, problem.variables, problem.domains)
+    Assignment={}
+    return backtracking(problem,Assignment, problem.variables, problem.domains)
 
 def backtracking(problem: Problem, assignment: Assignment, variables: List[str], domains: Dict[str, set]) -> Optional[Assignment]:
     
@@ -125,10 +126,10 @@ def backtracking(problem: Problem, assignment: Assignment, variables: List[str],
             assignment[variable] = value
             domainsCopy = domains.copy()
             for domainValue in domainsCopy:
-                domainsCopy[domainValue] = domains[domainValue].copy()
+                domainsCopy[domainValue] = domainsCopy[domainValue].copy()
             domainsCopy.pop(variable)
-            if  forward_checking(problem, variable, value, domains):
-                result = backtracking(problem, assignment, variables, domains)
+            if forward_checking(problem, variable, value, domainsCopy):
+                result = backtracking(problem, assignment, variables, domainsCopy)
                 if result is not None:
                     return result
             assignment.pop(variable)
