@@ -30,6 +30,9 @@ class CryptArithmeticProblem(Problem):
 
     @staticmethod
     def from_text(text: str) -> 'CryptArithmeticProblem':
+        def add_binary_constraint(self, var1, var2, constraint):
+            """Add a binary constraint as a lambda function."""
+            self.binary_constraints.append((var1, var2, constraint))
         # Given a text in the format "LHS0 + LHS1 = RHS", the following regex
         # matches and extracts LHS0, LHS1 & RHS
         # For example, it would parse "SEND + MORE = MONEY" and extract the
@@ -48,29 +51,59 @@ class CryptArithmeticProblem(Problem):
         # problem.domains:      should be dictionary that maps each variable (str) to its domain (set of values)
         #                       For the letters, the domain can only contain integers in the range [0,9].
         # problem.constaints:   should contain a list of constraint (either unary or binary constraints).
-
+        #getting the variables
         problem.variables = []
+        for letter in LHS0 + LHS1 + RHS:
+            if letter not in problem.variables:
+                problem.variables.append(letter)
+        #adding carries
+        problem.variables.extend([f"C{i}" for i in range(1, len(RHS))])
+        print(problem.variables)
         problem.domains = {}
-        for letter in LHS0+LHS1+RHS:
-            problem.variables.append(letter)
-            problem.domains[letter] = set(range(10))
-        # for i in range(max(len(LHS0),len(LHS1))+1):
-        #     problem.variables.append(f"C{i}")
-        problem.constraints = []
-        for letter in LHS0+LHS1:
-            #make all the letters in LHS0 and LHS1 and RHS have the unique values
-            
-            problem.constraints.append(UnaryConstraint(LHS0[0], lambda x: x != 0))
-            problem.constraints.append(UnaryConstraint(LHS1[0], lambda x: x != 0))
-            problem.constraints.append(UnaryConstraint(RHS[0], lambda x: x != 0))
-            problem.constraints.append(BinaryConstraint((LHS0, LHS1), lambda x, y: x + y == int(RHS)))
-            
-            
-            
-
+        #adding domains
+        #adding 0-9 for letters except for the first letter in LHS1, LHS0 and RHS
+        #adding {0,1} for carries
+        for letter in problem.variables:
+            if letter == LHS0[0] or letter == LHS1[0] or letter == RHS[0]:
+                problem.domains[letter] = set(range(1, 10))
+            elif letter[0] == "C" and letter[1:].isdigit():
+                problem.domains[letter] = set([0, 1])
+            else:
+                problem.domains[letter] = set(range(10))
+        print(problem.domains)
         
-        return problem
-
+        #adding constraints
+        problem.constraints = []
+        #adding uniqueness for each letter 
+        for letter in problem.variables:
+            problem.constraints.append(UnaryConstraint(letter, lambda x: x is None or x in problem.domains[letter]))
+        #adding constraints for the sum
+        # for example if we have TWO + TWO = FOUR
+        # we have the following constraints
+        # 10*C3 + O = 2*T + C2
+        # 10*C2 + U = 2*W + C1
+        # 10*C1 + R = 2*O
+        # F=C3
+        # i want to make it more general
+        # for i in range(len(RHS)):
+        #     carry = f"C{i}"
+        #     r = RHS[i]
+        #     d0 = LHS0[i] if i < len(LHS0) else None
+        #     d1 = LHS1[i] if i < len(LHS1) else None
+        #     cin = carry_vars[i]
+        #     carry_out = carry_vars[i + 1]
+            
+        #     if l0 and l1:  # Full equation: l0 + l1 + carry_in = r + 10 * carry_out
+        #         if d0 + d1 + c_in == r_digit + 10 * c_out:
+        #                 add_binary_constraint(l0, l1, lambda x, y: x + y == r_digit)
+        #                 add_binary_constraint(l1, carry_in, lambda y, z: y + z <= 9)
+        #                 add_binary_constraint(carry_in, r, lambda z, w: z + 1 == w)
+           
+        
+            
+    
+        
+       
     # Read a cryptarithmetic puzzle from a file
     @staticmethod
     def from_file(path: str) -> "CryptArithmeticProblem":
