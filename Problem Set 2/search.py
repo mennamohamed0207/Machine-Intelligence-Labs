@@ -30,7 +30,35 @@ def greedy(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: 
 # get values[0].
 def minimax(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function
-    NotImplemented()
+    agent = game.get_turn(state)
+    terminal, values = game.is_terminal(state)
+    if terminal: return values[agent], None
+    
+    if max_depth == 0:
+        return heuristic(game, state, 0), None
+    
+    actions_states = [(action, game.get_successor(state, action)) for action in game.get_actions(state)]
+    
+    if agent == 0:
+        best_value = float('-inf')
+        best_action = None
+        for action, state in actions_states:
+            value, _ = minimax(game, state, heuristic, max_depth - 1)
+            if value > best_value:
+                best_value = value
+                best_action = action
+        return best_value, best_action
+    else:
+        best_value = float('inf')
+        best_action = None
+        for action, state in actions_states:
+            value, _ = minimax(game, state, heuristic, max_depth - 1)
+            if value < best_value:
+                best_value = value
+                best_action = action
+        return best_value, best_action
+
+
 
 # Apply Alpha Beta pruning and return the tree value and the best action
 # Hint: Read the hint for minimax.

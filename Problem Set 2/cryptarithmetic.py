@@ -30,9 +30,7 @@ class CryptArithmeticProblem(Problem):
 
     @staticmethod
     def from_text(text: str) -> 'CryptArithmeticProblem':
-        def add_binary_constraint(self, var1, var2, constraint):
-            """Add a binary constraint as a lambda function."""
-            self.binary_constraints.append((var1, var2, constraint))
+        
         # Given a text in the format "LHS0 + LHS1 = RHS", the following regex
         # matches and extracts LHS0, LHS1 & RHS
         # For example, it would parse "SEND + MORE = MONEY" and extract the
@@ -57,7 +55,8 @@ class CryptArithmeticProblem(Problem):
             if letter not in problem.variables:
                 problem.variables.append(letter)
         #adding carries
-        problem.variables.extend([f"C{i}" for i in range(1, len(RHS))])
+        carries = [f"C{i}" for i in range( len(RHS))]
+        problem.variables.extend(carries)
         print(problem.variables)
         problem.domains = {}
         #adding domains
@@ -75,35 +74,31 @@ class CryptArithmeticProblem(Problem):
         #adding constraints
         problem.constraints = []
         #adding uniqueness for each letter 
-        for letter in problem.variables:
-            problem.constraints.append(UnaryConstraint(letter, lambda x: x is None or x in problem.domains[letter]))
+        for i, letter1 in enumerate(problem.variables):
+            for letter2 in problem.variables[i + 1:]:
+                # the letter is not C1, C2, C3
+                if not (letter1[0] == "C" and letter1[1:].isdigit()) and not (letter2[0] == "C" and letter2[1:].isdigit()):
+                    problem.constraints.append(
+                        BinaryConstraint(
+                            (letter1,
+                            letter2),
+                            lambda x, y: x is None or y is None or x != y
+                        )
+                    )
+
         #adding constraints for the sum
-        # for example if we have TWO + TWO = FOUR
-        # we have the following constraints
-        # 10*C3 + O = 2*T + C2
-        # 10*C2 + U = 2*W + C1
-        # 10*C1 + R = 2*O
-        # F=C3
-        # i want to make it more general
-        # for i in range(len(RHS)):
-        #     carry = f"C{i}"
-        #     r = RHS[i]
-        #     d0 = LHS0[i] if i < len(LHS0) else None
-        #     d1 = LHS1[i] if i < len(LHS1) else None
-        #     cin = carry_vars[i]
-        #     carry_out = carry_vars[i + 1]
-            
-        #     if l0 and l1:  # Full equation: l0 + l1 + carry_in = r + 10 * carry_out
-        #         if d0 + d1 + c_in == r_digit + 10 * c_out:
-        #                 add_binary_constraint(l0, l1, lambda x, y: x + y == r_digit)
-        #                 add_binary_constraint(l1, carry_in, lambda y, z: y + z <= 9)
-        #                 add_binary_constraint(carry_in, r, lambda z, w: z + 1 == w)
-           
+        problem.constraints.append(BinaryConstraint((RHS[-1], f"C{len(RHS)-1}"), lambda x, y: x == y))
+        for i in range(0, len(RHS)):
+            carry = f"C{i}"
+            carry_next = f"C{i+1}"
+            if i==0:
+                problem.constraints.append(BinaryConstraint((LHS0[-1], LHS1[-1]), lambda x, y: x + y == RHS[-1]+carry_next*10))
+            elif i<=len(RHS)-1 and i<len(LHS0) and i<len(LHS1):
+                problem.constraints.append(BinaryConstraint((LHS0[i], LHS1[i]), lambda x, y: x + y + carry == RHS[i]+carry_next*10))
+
+
         
-            
-    
-        
-       
+        return problem
     # Read a cryptarithmetic puzzle from a file
     @staticmethod
     def from_file(path: str) -> "CryptArithmeticProblem":
