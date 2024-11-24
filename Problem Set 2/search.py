@@ -43,7 +43,7 @@ def minimax(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth:
         best_value = float('-inf')
         best_action = None
         for action, state in actions_states:
-            value, _ = minimax(game, state, heuristic, max_depth - 1)
+            value, actionmax = minimax(game, state, heuristic, max_depth - 1)
             if value > best_value:
                 best_value = value
                 best_action = action
@@ -52,19 +52,52 @@ def minimax(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth:
         best_value = float('inf')
         best_action = None
         for action, state in actions_states:
-            value, _ = minimax(game, state, heuristic, max_depth - 1)
+            value, actionmin = minimax(game, state, heuristic, max_depth - 1)
             if value < best_value:
                 best_value = value
                 best_action = action
         return best_value, best_action
 
 
-
 # Apply Alpha Beta pruning and return the tree value and the best action
 # Hint: Read the hint for minimax.
 def alphabeta(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function
-    NotImplemented()
+    agent = game.get_turn(state)
+    terminal, values = game.is_terminal(state)
+    if terminal: return values[agent], None
+    
+    if max_depth == 0:
+        return heuristic(game, state, 0), None
+    
+    actions_states = [(action, game.get_successor(state, action)) for action in game.get_actions(state)]
+    
+    alpha, beta = float('-inf'), float('inf')
+    if agent == 0:
+        best_value = float('-inf')
+        best_action = None
+        for action, state in actions_states:
+            value, _ = alphabeta(game, state, heuristic, max_depth - 1)
+            if value > best_value:
+                best_value = value
+                best_action = action
+            alpha = max(alpha, best_value)
+            if alpha >= beta:
+                break
+        return best_value, best_action
+    else:
+        best_value = float('inf')
+        best_action = None
+        for action, state in actions_states:
+            value, _ = alphabeta(game, state, heuristic, max_depth - 1)
+            if value < best_value:
+                best_value = value
+                best_action = action
+            beta = min(beta, best_value)
+            if alpha >= beta:
+                break
+        return best_value, best_action
+
 
 # Apply Alpha Beta pruning with move ordering and return the tree value and the best action
 # Hint: Read the hint for minimax.
