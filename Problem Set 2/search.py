@@ -84,7 +84,9 @@ def minValue(game,state,alpha,beta):
             return v
         beta = min(beta,v)
     return v
-def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: HeuristicFunction,alpha=-float('inf'),beta=float('inf'), max_depth: int = -1) -> Tuple[float, A]:
+def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: HeuristicFunction,alpha=-float('inf'),beta=float('inf'), max_depth: int = -1,sortedcondition:bool=False) -> Tuple[float, A]:
+    
+        
     agent = game.get_turn(state)
     terminal, values = game.is_terminal(state)
     if terminal: return values[agent], None
@@ -97,8 +99,16 @@ def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: Heuris
     else:
         optimized_solution=float('inf')
     optimized_action = None
-    for action in game.get_actions(state):
-        value=alphabetapruningWithParameters(game, game.get_successor(state,action), heuristic,alpha,beta,max_depth - 1)
+    actions_states = game.get_actions(state)
+    if sortedcondition:
+        # print(actions_states)
+        # print(type(actions_states[0]))
+        #order the actions based on the heuristic value
+        
+        actions_states = sorted(actions_states,key=lambda x: heuristic(game,game.get_successor(state,x),agent),reverse=True)
+        
+    for action in actions_states:
+        value=alphabetapruningWithParameters(game, game.get_successor(state,action), heuristic,alpha,beta,max_depth - 1,sortedcondition)
         if agent == 0:
             if value[0] > optimized_solution:
                 optimized_solution = value[0]
@@ -126,7 +136,9 @@ def alphabeta(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_dept
 # Hint: Read the hint for minimax.
 def alphabeta_with_move_ordering(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function
-    NotImplemented()
+    alpha,beta=-float('inf'),float('inf')
+    value,action=alphabetapruningWithParameters(game,state,heuristic,alpha,beta,max_depth,True)
+    return value,action
 
 # Apply Expectimax search and return the tree value and the best action
 # Hint: Read the hint for minimax, but note that the monsters (turn > 0) do not act as min nodes anymore,
