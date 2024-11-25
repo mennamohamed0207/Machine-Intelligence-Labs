@@ -86,19 +86,13 @@ def minValue(game,state,alpha,beta):
     return v
 def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: HeuristicFunction,alpha=-float('inf'),beta=float('inf'), max_depth: int = -1,sortedcondition:bool=False) -> Tuple[float, A]:
     
-        
     agent = game.get_turn(state)
     terminal, values = game.is_terminal(state)
-    if terminal: return values[agent], None
+    if terminal: return values[0], None
     
     if max_depth == 0:
         return heuristic(game, state, 0), None
-    optimized_solution=0
-    if agent ==0:
-        optimized_solution=-float('inf')
-    else:
-        optimized_solution=float('inf')
-    optimized_action = None
+    
     actions_states = game.get_actions(state)
     if sortedcondition:
         # print(actions_states)
@@ -107,6 +101,12 @@ def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: Heuris
         
         actions_states = sorted(actions_states,key=lambda x: heuristic(game,game.get_successor(state,x),agent),reverse=True)
         
+    optimized_solution=0
+    if agent ==0:
+        optimized_solution=-float('inf')
+    else:
+        optimized_solution=float('inf')
+    optimized_action = None
     for action in actions_states:
         value=alphabetapruningWithParameters(game, game.get_successor(state,action), heuristic,alpha,beta,max_depth - 1,sortedcondition)
         if agent == 0:
@@ -125,6 +125,7 @@ def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: Heuris
             if beta<=alpha:
                 break
     return optimized_solution, optimized_action 
+
 def alphabeta(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function   
     alpha,beta=-float('inf'),float('inf')
