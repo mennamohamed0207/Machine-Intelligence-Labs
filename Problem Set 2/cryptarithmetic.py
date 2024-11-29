@@ -55,7 +55,7 @@ class CryptArithmeticProblem(Problem):
             if letter not in problem.variables:
                 problem.variables.append(letter)
         #adding carries
-        carries = [f"C{i}" for i in range( len(RHS))]
+        carries = [f"C{i}" for i in range(1,max(len(LHS0), len(LHS1))+1)]
         problem.variables.extend(carries)
         print(problem.variables)
         problem.domains = {}
@@ -87,16 +87,80 @@ class CryptArithmeticProblem(Problem):
                     )
 
         #adding constraints for the sum
-        problem.constraints.append(BinaryConstraint((RHS[-1], f"C{len(RHS)-1}"), lambda x, y: x == y))
-        for i in range(0, len(RHS)):
-            carry = f"C{i}"
-            carry_next = f"C{i+1}"
+        
+        #if the result is longer than the terms in the LHS so it is equal to the last carry and equal to 1
+        max_term= max(len(LHS0), len(LHS1))
+        if len(RHS)> max(len(LHS0), len(LHS1)):
+            problem.constraints.append(BinaryConstraint((RHS[0], f"C{max_term}"), lambda x, y: x == y))
+            problem.domains[RHS[0]] = {1}
+            problem.domains[f"C{max_term}"] = {1}
+        
+        for i in range(0, max(len(LHS0), len(LHS1))):
             if i==0:
-                problem.constraints.append(BinaryConstraint((LHS0[-1], LHS1[-1]), lambda x, y: x + y == RHS[-1]+carry_next*10))
-            elif i<=len(RHS)-1 and i<len(LHS0) and i<len(LHS1):
-                problem.constraints.append(BinaryConstraint((LHS0[i], LHS1[i]), lambda x, y: x + y + carry == RHS[i]+carry_next*10))
-
-
+                #adding auxilary variables to make it binary constraints LHS_aux=RHS_aux
+                LHS_last= LHS0[-1]+LHS1[-1]
+                RHS_last= RHS[-1]+f"C{i+1}"
+                
+                problem.variables.append(LHS_last)
+                problem.variables.append(RHS_last)
+                problem.domains[LHS_last]=[(j,k) for j in problem.domains[LHS0[-1]] for k in problem.domains[LHS1[-1]]]
+                problem.domains[RHS_last]=[(j,k) for j in problem.domains[RHS[-1]] for k in problem.domains[f"C{i+1}"]]
+                
+                problem.constraints.append(BinaryConstraint((LHS0[-1],LHS_last), lambda x, y: x == y[0]))
+                problem.constraints.append(BinaryConstraint((LHS1[-1],LHS_last), lambda x, y: x == y[1]))
+                
+                problem.constraints.append(BinaryConstraint((RHS[-1],RHS_last), lambda x, y: x == y[0]))
+                problem.constraints.append(BinaryConstraint((f"C{i+1}",RHS_last), lambda x, y: x == y[1]))
+                problem.constraints.append(BinaryConstraint((LHS_last, RHS_last), lambda x, y: x[0]+x[1] == y[0]+10*y[1]))
+            elif i<min(len(LHS0), len(LHS1)):
+                LHS_aux= LHS0[-i-1]+LHS1[-i-1]+f"C{i}"
+                RHS_aux= RHS[-i-1]+f"C{i+1}"
+                problem.variables.append(LHS_aux)
+                problem.variables.append(RHS_aux)
+                problem.domains[LHS_aux]=[(j,k,l) for j in problem.domains[LHS0[-i-1]] for k in problem.domains[LHS1[-i-1]] for l in problem.domains[f"C{i}"]]
+                problem.domains[RHS_aux]=[(j,k) for j in problem.domains[RHS[-i-1]] for k in problem.domains[f"C{i+1}"]]
+                
+                problem.constraints.append(BinaryConstraint((LHS0[-i-1],LHS_aux), lambda x, y: x == y[0]))
+                problem.constraints.append(BinaryConstraint((LHS1[-i-1],LHS_aux), lambda x, y: x == y[1]))
+                problem.constraints.append(BinaryConstraint((f"C{i}",LHS_aux), lambda x, y: x == y[2]))
+                
+                
+                problem.constraints.append(BinaryConstraint((RHS[-i-1],RHS_aux), lambda x, y: x == y[0]))
+                problem.constraints.append(BinaryConstraint((f"C{i+1}",RHS_aux), lambda x, y: x == y[1]))
+                
+                problem.constraints.append(BinaryConstraint((LHS_aux, RHS_aux), lambda x, y: x[0]+x[1]+x[2] == y[0]+10*y[1]))
+            else:
+                if min(len(LHS0), len(LHS1)) == len(LHS0):
+                    LHS_aux= LHS1[-i-1]+f"C{i}"
+                    RHS_aux= RHS[-i-1]+f"C{i+1}"
+                    problem.variables.append(LHS_aux)
+                    problem.variables.append(RHS_aux)
+                    problem.domains[LHS_aux]=[(j,k) for j in problem.domains[LHS1[-i-1]] for k in problem.domains[f"C{i}"]]
+                    problem.domains[RHS_aux]=[(j,k) for j in problem.domains[RHS[-i-1]] for k in problem.domains[f"C{i+1}"]]
+                    
+                    problem.constraints.append(BinaryConstraint((LHS1[-i-1],LHS_aux), lambda x, y: x == y[0]))
+                    problem.constraints.append(BinaryConstraint((f"C{i}",LHS_aux), lambda x, y: x == y[1]))
+                    
+                    problem.constraints.append(BinaryConstraint((RHS[-i-1],RHS_aux), lambda x, y: x == y[0]))
+                    problem.constraints.append(BinaryConstraint((f"C{i+1}",RHS_aux), lambda x, y: x == y[1]))
+                    
+                    problem.constraints.append(BinaryConstraint((LHS_aux, RHS_aux), lambda x, y: x[0]+x[1] == y[0]+10*y[1]))
+                else:
+                    LHS_aux= LHS0[-i-1]+f"C{i}"
+                    RHS_aux= RHS[-i-1]+f"C{i+1}"
+                    problem.variables.append(LHS_aux)
+                    problem.variables.append(RHS_aux)
+                    problem.domains[LHS_aux]=[(j,k) for j in problem.domains[LHS0[-i-1]] for k in problem.domains[f"C{i}"]]
+                    problem.domains[RHS_aux]=[(j,k) for j in problem.domains[RHS[-i-1]] for k in problem.domains[f"C{i+1}"]]
+                    
+                    problem.constraints.append(BinaryConstraint((LHS0[-i-1],LHS_aux), lambda x, y: x == y[0]))
+                    problem.constraints.append(BinaryConstraint((f"C{i}",LHS_aux), lambda x, y: x == y[1]))
+                    
+                    problem.constraints.append(BinaryConstraint((RHS[-i-1],RHS_aux), lambda x, y: x == y[0]))
+                    problem.constraints.append(BinaryConstraint((f"C{i+1}",RHS_aux), lambda x, y: x == y[1]))
+                    
+                    problem.constraints.append(BinaryConstraint((LHS_aux, RHS_aux), lambda x, y: x[0]+x[1] == y[0]+10*y[1]))
+                
         
         return problem
     # Read a cryptarithmetic puzzle from a file
