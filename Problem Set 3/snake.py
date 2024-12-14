@@ -76,10 +76,12 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
         """
         if seed is not None:
             self.rng.seed(seed) # Initialize the random generator using the seed
+            
         # TODO add your code here
+        self.snake = [Point(self.width//2, self.height//2)]
+        self.direction = Direction.LEFT
+        self.apple = self.generate_random_apple()
         # IMPORTANT NOTE: Define the snake before calling generate_random_apple
-        NotImplemented()
-
         return SnakeObservation(tuple(self.snake), self.direction, self.apple)
 
     def actions(self) -> List[Direction]:
@@ -92,8 +94,11 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
         # TODO add your code here
         # a snake can wrap around the grid
         # NOTE: The action order does not matter
-        NotImplemented()
-
+        if self.direction in {Direction.UP, Direction.DOWN}:
+            return [Direction.NONE, Direction.LEFT, Direction.RIGHT]
+        elif self.direction in {Direction.LEFT, Direction.RIGHT}:
+            return [Direction.NONE, Direction.UP, Direction.DOWN]
+        
     # Updates the current state using the given action
     def step(self, action: Direction) -> \
             Tuple[SnakeObservation, float, bool, Dict]:
@@ -110,13 +115,26 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
             - done (bool): A boolean indicating whether the episode is over.
             - info (Dict): A dictionary containing any extra information. You can keep it empty.
         """
+        if action == Direction.NONE:
+            action=self.direction
         done = False
         reward = 0
-        
         # TODO Complete the following function
-        NotImplemented()
-
+        self.direction = action
+        move=self.snake[0]+self.direction.to_vector()
+        new_pos=Point(move.x % self.width, move.y % self.width)
+        self.snake.insert(0, new_pos)
         
+        if new_pos == self.apple:
+            self.apple = self.generate_random_apple()
+            reward += 1
+        else:
+            self.snake.pop()
+            
+        if new_pos in self.snake[1:]:
+            done = True
+            reward -= 100
+            
         return SnakeObservation(tuple(self.snake), self.direction, self.apple), reward, done, {}
 
     ###########################

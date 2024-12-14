@@ -34,7 +34,6 @@ def question2_4():
         "noise": 0.2,
         "discount_factor": 1,
         "living_reward": -0.02
-    
     }
 
 def question2_5():
