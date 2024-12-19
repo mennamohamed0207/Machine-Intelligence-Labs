@@ -25,10 +25,10 @@ class ValueIterationAgent(Agent[S, A]):
             return 0
         max_utility = float('-inf')
         for action in self.mdp.get_actions(state):
-            expected_utility = 0
-            for next_state, prob in self.mdp.get_successor(state, action).items():
-                expected_utility += prob * (self.mdp.get_reward(state, action, next_state) + self.discount_factor * self.utilities[next_state])
-            max_utility = max(max_utility, expected_utility)
+            possible_expected_utility = 0
+            for next_state, probability in self.mdp.get_successor(state, action).items():
+                possible_expected_utility += probability * (self.mdp.get_reward(state, action, next_state) + self.discount_factor * self.utilities[next_state])
+            max_utility = max(max_utility, possible_expected_utility)
         return max_utility
     
     # Applies a single utility update
@@ -66,13 +66,14 @@ class ValueIterationAgent(Agent[S, A]):
     # If the state is terminal, return None
     def act(self, env: Environment[S, A], state: S) -> A:
         #TODO: Complete this function
-        if self.mdp.is_terminal(state): return None
+        if self.mdp.is_terminal(state): 
+            return None
         best_action = None
-        best_utility = -float('inf')
+        best_utility = float('-inf')
         for action in self.mdp.get_actions(state):
             utility = self.utilities[state]
-            for next_state, prob in self.mdp.get_successor(state, action).items():
-                utility += prob * (self.mdp.get_reward(state, action, next_state) + self.discount_factor * self.utilities[next_state])
+            for next_state, probability in self.mdp.get_successor(state, action).items():
+                utility += probability * (self.mdp.get_reward(state, action, next_state) + self.discount_factor * self.utilities[next_state])
             if utility > best_utility:
                 best_utility = utility
                 best_action = action

@@ -287,12 +287,15 @@ class ApproximateQLearningAgent(RLAgent[S, A]):
     def __compute_q_from_features(self, features: Dict[str, float], action: A) -> float:
         # TODO: Complete this function
         # NOTE: Remember to cast the action to string before quering self.weights
-        sum = 0
+        q_sum = 0
         for feature, weight in self.weights[action].items():
-            sum += weight * features[feature]
+            q_sum += weight * features[feature]
 
-        return sum
-
+        return q_sum
+        # q=0
+        # for name,val in features.items():
+        #     q+=self.weights[action][name]*val
+        # return q
     # Given the features of a state, compute and return the utility of the state using the function "__compute_q_from_features"
     def __compute_utility_from_features(self, features: Dict[str, float]) -> float:
         # TODO: Complete this function
@@ -318,9 +321,9 @@ class ApproximateQLearningAgent(RLAgent[S, A]):
         # TODO: Complete this function to update weights using the Q-Learning update rule
         # If done is True, then next_state is a terminal state in which case, we consider the Q-value of next_state to be 0
         features = self.feature_extractor.extract_features(env, state)
-        next_features= self.feature_extractor.extract_features(env, next_state)
-        q = self.__compute_q_from_features(features, action)  # Precompute Q-value
-        next_q = 0 if done else self.__compute_utility_from_features(next_features)  # Precompute next Q-value
+        features_next_state= self.feature_extractor.extract_features(env, next_state)
+        q = self.__compute_q_from_features(features, action)  
+        q_next_state = self.__compute_utility_from_features(features_next_state)
         if done:
             for feature in features:
                 self.weights[action][feature] +=   self.learning_rate * (
@@ -331,7 +334,7 @@ class ApproximateQLearningAgent(RLAgent[S, A]):
                 self.weights[action][feature] += self.learning_rate * (
                     reward
                     + self.discount_factor
-                    * next_q
+                    * q_next_state
                     - q
                 )*features[feature]
 

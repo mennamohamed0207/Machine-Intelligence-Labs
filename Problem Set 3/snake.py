@@ -124,14 +124,18 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
         move=self.snake[0]+self.direction.to_vector()
         new_pos=Point(move.x % self.width, move.y % self.width)
         self.snake.insert(0, new_pos)
-        
+        #if the snake eats the apple 
         if new_pos == self.apple:
             self.apple = self.generate_random_apple()
             reward += 1
         else:
             self.snake.pop()
-            
+            # if the snake collide with itself
         if new_pos in self.snake[1:]:
+            done = True
+            reward -= 100
+            # If the snake collides with walls 
+        if new_pos.x < 0 or new_pos.x >= self.width or new_pos.y < 0 or new_pos.y >= self.height:
             done = True
             reward -= 100
             
