@@ -1,158 +1,96 @@
 from dungeon import DungeonProblem, DungeonState
 from mathutils import Direction, Point, euclidean_distance, manhattan_distance
 from helpers import utils
-
+from collections import deque
+import heapq
 
 # This heuristic returns the distance between the player and the exit as an estimate for the path cost
 # While it is consistent, it does a bad job at estimating the actual cost thus the search will explore a lot of nodes before finding a goal
 def weak_heuristic(problem: DungeonProblem, state: DungeonState):
     return euclidean_distance(state.player, problem.layout.exit)
 
-#TODO: Import any modules and write any functions you want to use
-from collections import deque
 
-# 2/12 of testcase passed 
-'''
-in this function I am trying to make use of problem cashe that each state has a distance which is the min distance between player and coin and coin and exit 
-the min distance of all coins is the one that is in the problem cache 
-if there is no coins then manhattan_distance between player and exit 
-and here the distance is calculated through manhattan_distance
-but obviously it is not the best one 
-'''
-# def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
-#     #TODO: ADD YOUR CODE HERE
-#     #IMPORTANT: DO NOT USE "problem.is_goal" HERE.
-#     # Calling it here will mess up the tracking of the explored nodes count
-#     # which is considered the number of is_goal calls during the search
-#     #NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
-#     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-
-#     if state in problem.cache():
-#         return problem.cache()[state]
-
-#     coins = state.remaining_coins
-#     minDistance = float('inf')
-#     exit = problem.layout.exit
-#     if len(coins) == 0:
-#         minDistance = manhattan_distance(state.player, exit)
-#         problem.cache()[state] = minDistance
-#         return minDistance
-#     currentdist = 0
-#     for step in coins:
-#         currentdist= manhattan_distance(state.player, step)
-#         currentdist += manhattan_distance(step, exit)
-#         minDistance = min(minDistance, currentdist)
-#     problem.cache()[state] = minDistance
-#     return minDistance
-
-
-'''
-in this function I am trying to make use of problem cashe that each state has a distance which is the max distance between player and coin and coin and exit 
-the max distance of all coins is the one that is in the problem cache 
-if there is no coins then manhattan_distance between player and exit 
-and here the distance is calculated through manhattan_distance
-just using the max coin with manhattan_distance between player and coin and coin and exit made a little better
-'''
-# 6/12 of testcase passed 
-# def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
-#     #TODO: ADD YOUR CODE HERE
-#     #IMPORTANT: DO NOT USE "problem.is_goal" HERE.
-#     # Calling it here will mess up the tracking of the explored nodes count
-#     # which is considered the number of is_goal calls during the search
-#     #NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
-#     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-
-#     if state in problem.cache():
-#         return problem.cache()[state]
-
-#     coins = state.remaining_coins
-#     maxDistance = 0
-#     exit = problem.layout.exit
-#     if len(coins) == 0:
-#         maxDistance = manhattan_distance(state.player, exit)
-#         maxDistance = manhattan_distance(state.player, exit)
-#         problem.cache()[state] = maxDistance
-#         return maxDistance
-#     currentdist = 0
-#     for step in coins:
-#         currentdist= manhattan_distance(state.player, step)
-#         currentdist += manhattan_distance(step, exit)
-#         maxDistance = max(maxDistance, currentdist)
-#     problem.cache()[state] = maxDistance
-#     return maxDistance
-
-
-def bfs_cost_distance(start: Point, targets: set[Point], walkable: set[Point]) -> dict[Point, int]:
-    queue = deque([(start, 0)])
-    visited = {start}
-    distances = {}
-    while queue:
-        current, dist = queue.popleft()
-        # If we reached a coin then save the distance to that coin in the distances dict
-        if current in targets:
-            distances[current] = dist
-            if len(distances) == len(targets):
-                break
+def a_star_cost_distance(start, goals, walkable):
+    def get_neighbors(node):
+        neighbors = []
         for direction in Direction:
-            neighbor = current + direction.to_vector()
-            if neighbor in walkable and neighbor not in visited:
-                visited.add(neighbor)
-                queue.append((neighbor, dist + 1))
+            neighbor = node+direction.to_vector()
+            if neighbor in walkable:
+                neighbors.append(neighbor)
+        return neighbors
 
-    return distances
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
+    g_score = {start: 0}
+    f_score = {start: min(manhattan_distance(start, goal) for goal in goals)}
 
-''''
-what i made different here is that i have used different distance fucntion which is bfs instead of using manhathan_distance 
-which makes much better results
+    while open_set:
+        _, current = heapq.heappop(open_set)
 
-'''
-# 8/12 of testcase passed 
+        if current in goals:
+            return g_score[current]
+
+        for neighbor in get_neighbors(current):
+            tentative_g_score = g_score[current] + 1
+
+            if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = tentative_g_score + min(manhattan_distance(neighbor, goal) for goal in goals)
+                heapq.heappush(open_set, (f_score[neighbor], neighbor))
+
+    return float('inf')
+
+def prim_mst(points, distances):
+    mst_cost = 0
+    visited = set()
+    min_heap = [(0, points[0])]  # Start with an arbitrary point
+
+    while min_heap:
+        cost, point = heapq.heappop(min_heap)
+        if point in visited:
+            continue
+        visited.add(point)
+        mst_cost += cost
+
+        for neighbor in points:
+            if neighbor not in visited:
+                heapq.heappush(min_heap, (distances[point][neighbor], neighbor))
+
+    return mst_cost
+
 def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     if state in problem.cache():
         return problem.cache()[state]
 
-    coins= state.remaining_coins
-    exit= problem.layout.exit
-    walkable= problem.layout.walkable
+    coins = state.remaining_coins
+    exit = problem.layout.exit
+    walkable = problem.layout.walkable
+
     if len(coins) == 0:
         exitDistance = manhattan_distance(state.player, exit)
         problem.cache()[state] = exitDistance
         return exitDistance
 
-    distances = bfs_cost_distance(state.player, coins, walkable)
+    playerToCoins = {coin: a_star_cost_distance(state.player, [coin], walkable) for coin in coins}
+    coinsToExit = {coin: a_star_cost_distance(exit, [coin], walkable) for coin in coins}
+
+    # Create a complete graph with coins and calculate MST using Prim's algorithm
+    coins_list = list(coins)
+    distances = {point: {} for point in coins_list}
+    for i, point1 in enumerate(coins_list):
+        for j, point2 in enumerate(coins_list):
+            if i != j:
+                distances[point1][point2] = a_star_cost_distance(point1, [point2], walkable)
+
+    mst_cost = prim_mst(coins_list, distances)
 
     maxDistance = 0
+    for coin in coins:
+        playerToCoinCost = playerToCoins.get(coin)
+        coinToExitCost = coinsToExit.get(coin)
+        maxDistance = max(maxDistance, playerToCoinCost + coinToExitCost + mst_cost)
 
-    for coin in distances:
-        maxDistance = max(maxDistance, distances[coin])
-        
-    maxDistance = max(maxDistance, manhattan_distance(state.player, exit))        
-        
     problem.cache()[state] = maxDistance
     return maxDistance
-def combined_bfs_cost(start: Point, targets: set[Point], exit: Point, walkable: set[Point]) -> tuple[dict[Point, int], int]:
-    queue = deque([(start, 0)])
-    visited = {start}
-    distances = {}
-    exit_distance = float('inf')
-
-    while queue:
-        current, dist = queue.popleft()
-
-        # Track distance to each target (coins) and exit
-        if current in targets:
-            distances[current] = dist
-            if len(distances) == len(targets) and current == exit:
-                break
-        if current == exit:
-            exit_distance = dist
-
-        # Explore neighbors
-        for direction in Direction:
-            neighbor = current + direction.to_vector()
-            if neighbor in walkable and neighbor not in visited:
-                visited.add(neighbor)
-                queue.append((neighbor, dist + 1))
-
-    return distances, exit_distance
-

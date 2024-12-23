@@ -32,7 +32,7 @@ def minimax(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth:
     #TODO: Complete this function
     agent = game.get_turn(state)
     terminal, values = game.is_terminal(state)
-    if terminal: return values[agent], None
+    if terminal: return values[0], None
     
     if max_depth == 0:
         return heuristic(game, state, 0), None
@@ -96,14 +96,12 @@ def alphabetapruningWithParameters(game: Game[S, A], state: S, heuristic: Heuris
     actions_states = game.get_actions(state)
     if sortedcondition:
         # print(actions_states)
-        # print(type(actions_states[0]))
-        #order the actions based on the heuristic value
-        
+        # print(type(actions_states[0]))        
         actions_states = sorted(actions_states,key=lambda x: heuristic(game,game.get_successor(state,x),agent),reverse=True)
         
     optimized_solution=0
     if agent ==0:
-        optimized_solution=-float('inf')
+        optimized_solution=float('-inf')
     else:
         optimized_solution=float('inf')
     optimized_action = None

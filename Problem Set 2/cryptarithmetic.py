@@ -57,7 +57,7 @@ class CryptArithmeticProblem(Problem):
         #adding carries
         carries = [f"C{i}" for i in range(1,max(len(LHS0), len(LHS1))+1)]
         problem.variables.extend(carries)
-        print(problem.variables)
+        # print(problem.variables)
         problem.domains = {}
         #adding domains
         #adding 0-9 for letters except for the first letter in LHS1, LHS0 and RHS
@@ -69,19 +69,19 @@ class CryptArithmeticProblem(Problem):
                 problem.domains[letter] = set([0, 1])
             else:
                 problem.domains[letter] = set(range(10))
-        print(problem.domains)
+        # print(problem.domains)
         
         #adding constraints
         problem.constraints = []
         #adding uniqueness for each letter 
-        for i, letter1 in enumerate(problem.variables):
-            for letter2 in problem.variables[i + 1:]:
+        for i, letteri in enumerate(problem.variables):
+            for letterj in problem.variables[i + 1:]:
                 # the letter is not C1, C2, C3
-                if not (letter1[0] == "C" and letter1[1:].isdigit()) and not (letter2[0] == "C" and letter2[1:].isdigit()):
+                if not (letteri[0] == "C" and letteri[1:].isdigit()) and not (letterj[0] == "C" and letterj[1:].isdigit()):
                     problem.constraints.append(
                         BinaryConstraint(
-                            (letter1,
-                            letter2),
+                            (letteri,
+                            letterj),
                             lambda x, y: x is None or y is None or x != y
                         )
                     )
@@ -112,6 +112,7 @@ class CryptArithmeticProblem(Problem):
                 problem.constraints.append(BinaryConstraint((RHS[-1],RHS_last), lambda x, y: x == y[0]))
                 problem.constraints.append(BinaryConstraint((f"C{i+1}",RHS_last), lambda x, y: x == y[1]))
                 problem.constraints.append(BinaryConstraint((LHS_last, RHS_last), lambda x, y: x[0]+x[1] == y[0]+10*y[1]))
+                #there is term longer than term so the eqution will differ 
             elif i<min(len(LHS0), len(LHS1)):
                 LHS_aux= LHS0[-i-1]+LHS1[-i-1]+f"C{i}"
                 RHS_aux= RHS[-i-1]+f"C{i+1}"
